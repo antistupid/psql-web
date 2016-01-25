@@ -1,0 +1,28 @@
+{
+  "name": "antistupid/psql-web",
+  "description": "postgresql web client",
+  "keywords": [
+    "postgresql",
+    "hasty"
+  ],
+  "repositories": [
+    {
+        "type": "vcs",
+        "url": "https://github.com/antistupid/Hasty"
+    }
+  ],
+  "homepage": "https://github.com/antistupid/Hasty-Skeleton",
+  "license": "MIT",
+  "require": {
+    "php": ">=5.4.0",
+    "antistupid/Hasty": "*"
+  },
+  "minimum-stability": "dev",
+  "require-dev": {
+  },
+  "autoload": {
+    "psr-4": {
+      "": "app"
+    }
+  }
+}

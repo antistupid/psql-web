@@ -1,0 +1,90 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <h1 class="page-header">records <span class="small pull-right" style="margin-top:14px">{{ domain_name }}</span></h1>
+    <div class="row">
+        <div class="col-lg-3 col-md-3">
+            <h4>register a new record</h4>
+
+            <form action="" method="post" style="background:#f7f7f7; padding: 10px;">
+                <input type="hidden" name="mode" value="add">
+
+                <div class="form-group">
+                    <label for="inputType">
+                        <small>Record Type</small>
+                    </label>
+
+                    <div class="select2-wrapper">
+                        <select name="type" class="form-control input-sm select2">
+                            <option value=""></option>
+                            {% for t in recordType %}
+                            <option value="{{ t }}">{{ t }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inputHost">
+                        <small>Host</small>
+                    </label>
+                    <input type="text" class="form-control input-sm" name="name" id="inputHost"
+                           placeholder="Domain name">
+                </div>
+                <div class="form-group">
+                    <label for="inputContent">
+                        <small>Content</small>
+                    </label>
+                    <input type="text" class="form-control input-sm" name="content" id="inputContent"
+                           placeholder="Content">
+                </div>
+                <div class="form-group">
+                    <label for="inputPrio">
+                        <small>Priority</small>
+                    </label>
+                    <input type="text" class="form-control input-sm" name="prio" id="inputPrio"
+                           placeholder="Priority" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="inputTtl">
+                        <small>TTL</small>
+                    </label>
+                    <input type="text" class="form-control input-sm" name="ttl" id="inputTtl"
+                           placeholder="TTL" value="86400">
+                </div>
+                <button type="submit" class="btn btn-default btn-sm">Create</button>
+            </form>
+            <hr class="visible-sm-block visible-xs-block">
+        </div>
+        <div class="col-lg-9 col-md-9">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>name</th>
+                    <th>type</th>
+                    <th>content</th>
+                    <th>ttl</th>
+                    <th>prio</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for l in list %}
+                    <tr>
+                        <td>{{ (l.name == domain_name ? '@' : l.name) }}</td>
+                        <td>{{ l.type }}</td>
+                        <td>{{ l.content }}</td>
+                        <td>{{ l.ttl }}</td>
+                        <td>{{ l.prio }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    {{ parent() }}
+    <script>
+        $(".select2").select2({placeholder: 'Record Type'});
+    </script>
+{% endblock %}

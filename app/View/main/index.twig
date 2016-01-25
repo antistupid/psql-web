@@ -1,0 +1,102 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <div style="height: 100%;">
+        <div id="content" class="container-fluid">
+        </div>
+
+        <div class="form-group" id="commandline">
+            <span id="dsn">current dsn: postgresql://{{ username }}@{{ host }}/<span id="dbname">{{ dbname }}</span>
+                </span>
+            <textarea class="form-control" row="1"></textarea>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    {{ parent() }}
+    <script type="text/javascript">
+        (function ($) {
+            var sequence = 0;
+            var generateTable = function (keys, list) {
+                var t = [];
+                t.push('<table class="table table-striped"><thead><tr>');
+                for (var i = 0; i < keys.length; i++) {
+                    t.push('<th>' + keys[i] + '</th>')
+                }
+                t.push('</tr></thead><tbody>');
+                for (var j = 0; j < list.length; j++) {
+                    t.push('<tr>');
+                    for (var k = 0; k < list[j].length; k++) {
+                        t.push('<td>' + list[j][k] + '</td>');
+                    }
+                    t.push('</tr>')
+                }
+                t.push('</tr></tbody></table>');
+                return t.join('');
+            };
+            var sendCommand = function (sequence, command) {
+                $content.append('<div class="command pending" id="command_' + sequence + '">' +
+                        '<span>#' + sequence + '></span>' +
+                        '<pre>' + command + '</pre></div>');
+                $content.append('<div class="result pending" id="result_' + sequence + '">pending...</div>');
+                $content.scrollTop($content[0].scrollHeight);
+                return $.ajax({
+                    url: '/query',
+                    data: {
+                        command: command
+                    },
+                    type: 'post'
+                }).then(function (r, e, b) {
+                    if (r && r.msg)
+                        $('#result_' + sequence).html('<pre>' + r.msg + '</pre>').removeClass('pending');
+                    else if (r && r.table && r.table.values.length !== 0) {
+                        $('#result_' + sequence).html(generateTable(r.table.keys, r.table.values)).removeClass('pending');
+                        $('#result_' + sequence + ' table').DataTable({
+                            scrollX: true,
+                            paging: true
+                        });
+                    } else {
+                        $('#result_' + sequence).html('<pre>no result</pre>').removeClass('pending');
+                    }
+                    $('#command_' + sequence).removeClass('pending').addClass('success');
+
+                    if (command.substring(0, 2).trim() === '\\c')
+                        $('#dbname').text(command.substring(2).trim());
+                    $content.scrollTop($content[0].scrollHeight);
+                }, function (r) {
+                    if (r.status === 406) {
+                        $('#command_' + sequence).removeClass('pending').addClass('failure');
+                        $('#result_' + sequence).html('<pre class="error">' + r.responseJSON.msg + '</pre>').removeClass('pending');
+                        $content.scrollTop($content[0].scrollHeight);
+                    }
+                });
+            };
+
+            $(function ($) {
+                $content = $('#content');
+                var commandInput = document.querySelectorAll('textarea');
+                $(commandInput).focus();
+
+                /* auto size command line */
+                autosize(commandInput);
+
+                /* key down event */
+                $(commandInput).on('keydown', function (e) {
+                    if (e.keyCode === 13 && !(e.shiftKey || e.ctrlKey)) {
+                        var command = $(this).val().trim();
+                        if (command === '')
+                            return false;
+                        $(this).val('');
+
+                        sendCommand(++sequence, command)
+                        return false;
+                    }
+                    return true;
+                });
+
+                sendCommand(++sequence, '\\d')
+            });
+        })(jQuery);
+    </script>
+{% endblock %}

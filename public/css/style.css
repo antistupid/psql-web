@@ -1,0 +1,237 @@
+html, body {
+    height: 100%;
+
+}
+
+body {
+    font-family: 'PT Sans', san-serif;
+    font-weight: 300;
+}
+
+nav.navbar-inverse {
+    border-radius: 0;
+    border: 0;
+    border-bottom: 1px solid #444;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'proxima-nova', san-serif;
+}
+
+h2 {
+    margin-top: 40px;
+}
+
+a.navbar-brand {
+    font-family: 'proxima-nova', san-serif;
+}
+
+#commandline {
+    border-top: 1px solid #EFEFEF;
+    position: fixed;
+    width: 100%;
+    bottom: 0px;
+    padding: 10px;
+    margin-bottom: 0px;
+    background: #f8f8fa;
+}
+#commandline #dsn {
+    font-size: 90%;
+    font-family: 'ubuntu mono', serif;
+    font-weight: bold;
+    color: #777;
+}
+
+#commandline #dsn #dbname {
+    color: black;
+}
+
+#commandline textarea {
+    margin-top: 5px;
+    font-family: 'ubuntu mono';
+}
+
+#content {
+    position: absolute;
+    box-sizing: content-box;
+    overflow: scroll;
+    font-family: 'ubuntu mono', serif;
+    bottom: 96px;
+    left: 0px;
+    right: 0px;
+    top: 60px;
+}
+
+#content, #content pre {
+    font-size: 90%;
+}
+
+#content pre.error {
+    border:0;
+}
+
+#content th, #content td {
+    white-space: nowrap;
+}
+
+.table {
+    margin-bottom: 2px;
+}
+
+td {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+}
+
+.navbar {
+    margin-bottom: 0px;
+}
+
+.command {
+    padding: 5px;
+    background: #f8f8fa;
+    background: #f1f1f1;
+}
+
+.command span {
+    float: left;
+}
+
+.command pre {
+    border: 0px;
+    padding: 2px;
+    padding-left: 6px;
+    margin: 0px;
+    background: transparent;
+}
+
+.command.success pre {
+    color: blue;
+    font-weight: bold;
+}
+
+.command.failure pre {
+    color: red;
+}
+
+.command.pending {
+    color: #797979;
+}
+
+.result {
+    margin-top: 10px;
+    -webkit-transition: opacity 2.0s ease-in;
+    -moz-transition: opacity 2.0s ease-in;
+    -o-transition: opacity 2.0s ease-in;
+    opacity: 1;
+    margin-bottom: 10px;
+}
+
+@keyframes flickerAnimation {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@-o-keyframes flickerAnimation {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@-moz-keyframes flickerAnimation {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes flickerAnimation {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.result.pending {
+    color: #aeaeae;
+    -webkit-animation: flickerAnimation 1s infinite;
+    -moz-animation: flickerAnimation 1s infinite;
+    -o-animation: flickerAnimation 1s infinite;
+    animation: flickerAnimation 1s infinite;
+}
+
+/* data table */
+.container-fluid {
+    padding-right: 10px;
+    padding-left: 10px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.row {
+    margin-right: -10px;
+    margin-left: -10px;
+}
+
+.col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 {
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+table.dataTable {
+    border-bottom: 1px solid #EFEFEF;
+}
+
+/* paging */
+.pagination>li>a, .pagination>li>span {
+    position: relative;
+    float: left;
+    padding: 1px 10px;
+    margin-left: -1px;
+    line-height: 1.42857143;
+    color: #337ab7;
+    text-decoration: none;
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+
+div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+    margin-top: 10px;
+}
+
+.pagination>li>a, .pagination>li>span {
+color: #696969;
+    border:1px solid #EFEFEF;
+}
+
+.pagination>.disabled>a, .pagination>.disabled>a:focus, .pagination>.disabled>a:hover, .pagination>.disabled>span, .pagination>.disabled>span:focus, .pagination>.disabled>span:hover {
+    border-color: #EFEFEF;
+
+}
+
+.pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover {
+    background-color: #555;
+}

@@ -1,0 +1,29 @@
+{% extends 'layout.login.twig' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-offset-4 col-md-4">
+            <p>
+            <h3>Login</h3> <hr>
+            </p>
+            {% include "flash.twig" %}
+            <form action="/login" method="post">
+                <div class="form-group">
+                    <input name="host" type="text" class="form-control" id="inputHost" placeholder="Host" value="localhost">
+                </div>
+                <div class="form-group">
+                    <input name="username" type="text" class="form-control" id="exampleInputEmail1" placeholder="Username">
+                </div>
+                <div class="form-group">
+                    <input name="password" type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+                </div>
+                <div class="form-group">
+                    <input name="dbname" type="text" class="form-control" id="inputDbname" placeholder="DB name">
+                </div>
+                <button type="submit" class="btn btn-default login-button">Login</button>
+            </form>
+            <br>
+            <a href="https://github.com/antistupid/psql-web">postgresql web console</a>
+        </div>
+    </div>
+{% endblock %}

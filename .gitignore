@@ -1,0 +1,12 @@
+# Composer files
+composer.phar
+composer.lock
+vendor/
+
+# Binary gettext files
+*.mo
+
+/tmp
+
+# phpstorm
+.idea/

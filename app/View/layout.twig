@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+
+    <link href='https://fonts.googleapis.com/css?family=PT+Sans' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Ubuntu+Mono' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet"
+          href="http://use.typekit.net/c/9711fe/1w;proxima-nova,2,Vmx:F:n3,W0X:F:n6,Vn5:F:n8;trajan-pro-3,2,XdZ:F:n4/d?3bb2a6e53c9684ffdc9a9aff195b2a62452a13f44e7d614e1442605a5f19f45677095979ec9ef3b8164d001df672b9cc2655e59fd21a36582cab54bb0100d088365d51e024105952cf661c2777c07cc0be85d52d6e15c2f3825814b492">
+
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/select2.css">
+    <link rel="stylesheet" href="css/select2-bootstrap.css"/>
+    <link rel="stylesheet" href="css/font-awesome.min.css" type="text/css"/>
+
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.10/css/dataTables.bootstrap.css"/>
+
+
+    <link rel="stylesheet" href="css/style.css" type="text/css">
+
+</head>
+
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">psql-web</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                {% if username %}
+                    <li><a href="#"></a></li>
+                    <li><a href="/logout">Logout</a></li>
+                {% else %}
+                    <li><a href="/login">Login</a></li>
+                {% endif %}
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
+
+<div style="height: 100%;">
+    {% block content %}
+    {% endblock %}
+</div>
+
+{% block script %}
+    <script src="js/jquery-2.1.1.min.js" type="text/javascript"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/select2.js"></script>
+    <script src="js/autosize.js"></script>
+
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.js"></script>
+{% endblock %}
+</body>
+</html>
