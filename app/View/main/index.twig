@@ -49,12 +49,11 @@
             };
 
             var scrollDown = function () {
-                $content = $('#content');
+                var $content = $('#content');
                 $content.scrollTop($content[0].scrollHeight);
             };
 
             var success = function (data, sequence, mode) {
-                var $command = $('#command_' + sequence);
                 var $result = $('#result_' + sequence);
 
                 if (typeof data === 'string') { /* string */
@@ -80,6 +79,10 @@
             var getHeight = function (_sequence) {
                 return $('#result_' + _sequence).height();
             };
+
+            $(function () {
+                $('textarea').focus();
+            });
 
             return {
                 scrollDown: scrollDown,
@@ -210,6 +213,22 @@
                 };
 
                 self.triggerExecute = function (command) {
+                    /* internal command */
+                    var match = command.trim().match(/^:([a-zA-Z]+)\s+(\d+)$/);
+                    if (match) {
+                        var internalCommand = match[1];
+                        var arg = parseInt(match[2]);
+                        switch (internalCommand) {
+                            case 'reload':
+                                sendCommand(self.resultBlock()[arg - 1].command, arg);
+                                break;
+                            default:
+                                break;
+                        }
+                        return;
+                    }
+
+                    /* send command */
                     var t = command.split(';');
                     for (var i = 0; i < t.length; i++) {
                         if (t[i].trim() === '')
