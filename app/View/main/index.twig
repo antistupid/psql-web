@@ -109,8 +109,10 @@
                         };
 
                         $(elem).find('textarea').on('keydown', function (e) {
-                            if (e.keyCode === 13 && e.ctrlKey)
-                                return sendInput();
+                            if (e.keyCode === 13 && e.ctrlKey) {
+                                sendInput();
+                                return false;
+                            }
                             return true;
                         });
 
