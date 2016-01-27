@@ -6,28 +6,21 @@
             <div class="command"
                  data-bind="css: {pending: status() === 0, success: status() === 1, failure: status() === 2}">
                 <div class="pull-right" data-bind="if: canRefresh()">
-                    <a href="#" data-bind="click: $root.refresh">
-                        <i class="fa fa-refresh"></i></a>
+                    <a href="#" data-bind="click: $root.refresh"><i class="fa fa-refresh"></i></a>
                 </div>
                 <span data-bind="text: '#' + sequence"></span>
-                <a href="#" data-bind="click: $root.edit">
-                    <pre data-bind="text: command"></pre>
-                </a>
+                <pre data-bind="text: command, click: $root.edit"></pre>
             </div>
             <div class="result pending" data-bind="attr: {id: 'result_' + sequence}, style: {height: height}">
-                pending...
-                <span data-bind="text: height"></span>
+                Pending...
             </div>
         </div>
 
-        <div class="form-group" id="commandline" data-bind="commander: {
-            triggerExecute: triggerExecute
-        }">
-            <div class="pull-right"><a href="javascript:;" onclick="triggerExecuteFromButton()">execute (Ctrl +
-                    Enter)</a></div>
+        <div class="form-group" id="commandline" data-bind="commander: { triggerExecute: triggerExecute }">
+            <div class="pull-right" id="btn_send"><a href="#">execute (Ctrl + Enter)</a></div>
             <span id="dsn">current dsn: postgresql://{{ username }}@{{ host }}/<span
                         data-bind="text: dbname">{{ dbname }}</span></span>
-            <textarea class="form-control" row="1"></textarea>
+            <textarea class="form-control"></textarea>
         </div>
     </div>
 {% endblock %}
@@ -35,31 +28,31 @@
 {% block script %}
     {{ parent() }}
     <script type="text/javascript">
-
-        var generateTable = function (keys, list) {
-            var t = [];
-            t.push('<table class="table table-striped"><thead><tr>');
-            for (var i = 0; i < keys.length; i++) {
-                t.push('<th>' + keys[i] + '</th>')
-            }
-            t.push('</tr></thead><tbody>');
-            for (var j = 0; j < list.length; j++) {
-                t.push('<tr>');
-                for (var k = 0; k < list[j].length; k++) {
-                    t.push('<td>' + list[j][k] + '</td>');
-                }
-                t.push('</tr>')
-            }
-            t.push('</tr></tbody></table>');
-            return t.join('');
-        };
-
         var app = (function ($) {
             var CREATE = 1, EDIT = 2;
+
+            var generateTable = function (keys, list) {
+                var t = [];
+                t.push('<table class="table table-striped"><thead><tr>');
+                for (var i = 0; i < keys.length; i++) {
+                    t.push('<th>' + keys[i] + '</th>')
+                }
+                t.push('</tr></thead><tbody>');
+                for (var j = 0; j < list.length; j++) {
+                    t.push('<tr>');
+                    for (var k = 0; k < list[j].length; k++)
+                        t.push('<td>' + list[j][k] + '</td>');
+                    t.push('</tr>')
+                }
+                t.push('</tr></tbody></table>');
+                return t.join('');
+            };
+
             var scrollDown = function () {
-                $content = $('#content')
+                $content = $('#content');
                 $content.scrollTop($content[0].scrollHeight);
             };
+
             var success = function (data, sequence, mode) {
                 var $command = $('#command_' + sequence);
                 var $result = $('#result_' + sequence);
@@ -76,15 +69,17 @@
                 if (mode === CREATE)
                     scrollDown();
             };
+
             var error = function (data, sequence, mode) {
                 var $result = $('#result_' + sequence);
                 $result.html('<pre class="error">' + data + '</pre>').removeClass('pending');
                 if (mode === CREATE)
                     scrollDown();
             };
+
             var getHeight = function (_sequence) {
                 return $('#result_' + _sequence).height();
-            }
+            };
 
             return {
                 scrollDown: scrollDown,
@@ -96,38 +91,44 @@
             };
         })(jQuery);
 
-        ko.bindingHandlers.commander = {
-            init: function (elem, va) {
-                var v = va();
-                (function ($) {
-                    $(elem).find('textarea').on('keydown', function (e) {
-                        if (e.keyCode === 13 && e.ctrlKey) {
-                            var command = $(this).val().trim();
+        (function () {
+            ko.bindingHandlers.commander = {
+                init: function (elem, va) {
+                    var v = va();
+                    (function ($) {
+
+                        var sendInput = function () {
+                            var $commandInput = $('textarea');
+                            var command = $commandInput.val().trim();
                             if (command === '')
                                 return false;
-                            $(this).val('');
+                            $commandInput.val('');
 
                             v.triggerExecute(command);
                             app.scrollDown();
-                        }
-                        return true;
-                    });
+                        };
 
-                    v.triggerExecute('\\d');
-                })(jQuery);
-            }
-        };
+                        $(elem).find('textarea').on('keydown', function (e) {
+                            if (e.keyCode === 13 && e.ctrlKey)
+                                return sendInput();
+                            return true;
+                        });
 
-        ko.bindingHandlers.init = {
-            init: function (elem, va) {
-                var v = va();
-                (function ($) {
-                    v($.ajax);
-                })(jQuery);
-            }
-        };
+                        $(elem).find('#btn_send').click(sendInput);
 
-        (function () {
+                        v.triggerExecute('\\d');
+                    })(jQuery);
+                }
+            };
+
+            ko.bindingHandlers.init = {
+                init: function (elem, va) {
+                    var v = va();
+                    (function ($) {
+                        v($.ajax);
+                    })(jQuery);
+                }
+            };
 
             var Result = function (command, sequence, height) {
                 this.command = command;
@@ -138,7 +139,7 @@
                 this.canRefresh = ko.observable(true);
             };
 
-            var model = new function () {
+            var Model = new function () {
                 var self = this;
                 var sequence = 0;
                 var request = null;
@@ -168,7 +169,6 @@
                         /* success */
                         result.status(1);
 
-                        /* success */
                         if (response && response.msg)
                             app.success(response.msg, _sequence, mode);
                         else if (response && response.table && response.table.values.length !== 0) {
@@ -205,22 +205,20 @@
                 };
 
                 self.edit = function (sequence, obj) {
-                    // self.triggerExecute(obj.command)
-                    console.log(request, sequence, obj)
                 };
 
                 self.triggerExecute = function (command) {
                     var t = command.split(';');
                     for (var i = 0; i < t.length; i++) {
-                        if (t[i].trim() === '') continue;
-
+                        if (t[i].trim() === '')
+                            continue;
                         sendCommand(t[i].trim(), sequence + 1);
                         sequence++;
                     }
                 }
             }();
 
-            ko.applyBindings(model, document.getElementById('html'));
+            ko.applyBindings(Model, document.getElementById('html'));
         })();
     </script>
 {% endblock %}

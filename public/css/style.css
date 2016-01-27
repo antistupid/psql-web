@@ -103,6 +103,7 @@ td {
     padding-left: 6px;
     margin: 0px;
     background: transparent;
+    cursor: pointer;
 }
 
 .command.success pre {
