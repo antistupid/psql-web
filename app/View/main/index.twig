@@ -1,13 +1,32 @@
 {% extends 'layout.twig' %}
 
 {% block content %}
-    <div style="height: 100%;">
-        <div id="content" class="container-fluid">
+    <div style="height: 100%;" data-bind="init: init">
+        <div id="content" class="container-fluid" data-bind="foreach: resultBlock">
+            <div class="command"
+                 data-bind="css: {pending: status() === 0, success: status() === 1, failure: status() === 2}">
+                <div class="pull-right" data-bind="if: canRefresh()">
+                    <a href="#" data-bind="click: $root.refresh">
+                        <i class="fa fa-refresh"></i></a>
+                </div>
+                <span data-bind="text: '#' + sequence"></span>
+                <a href="#" data-bind="click: $root.edit">
+                    <pre data-bind="text: command"></pre>
+                </a>
+            </div>
+            <div class="result pending" data-bind="attr: {id: 'result_' + sequence}, style: {height: height}">
+                pending...
+                <span data-bind="text: height"></span>
+            </div>
         </div>
 
-        <div class="form-group" id="commandline">
-            <span id="dsn">current dsn: postgresql://{{ username }}@{{ host }}/<span id="dbname">{{ dbname }}</span>
-                </span>
+        <div class="form-group" id="commandline" data-bind="commander: {
+            triggerExecute: triggerExecute
+        }">
+            <div class="pull-right"><a href="javascript:;" onclick="triggerExecuteFromButton()">execute (Ctrl +
+                    Enter)</a></div>
+            <span id="dsn">current dsn: postgresql://{{ username }}@{{ host }}/<span
+                        data-bind="text: dbname">{{ dbname }}</span></span>
             <textarea class="form-control" row="1"></textarea>
         </div>
     </div>
@@ -16,87 +35,192 @@
 {% block script %}
     {{ parent() }}
     <script type="text/javascript">
-        (function ($) {
-            var sequence = 0;
-            var generateTable = function (keys, list) {
-                var t = [];
-                t.push('<table class="table table-striped"><thead><tr>');
-                for (var i = 0; i < keys.length; i++) {
-                    t.push('<th>' + keys[i] + '</th>')
+
+        var generateTable = function (keys, list) {
+            var t = [];
+            t.push('<table class="table table-striped"><thead><tr>');
+            for (var i = 0; i < keys.length; i++) {
+                t.push('<th>' + keys[i] + '</th>')
+            }
+            t.push('</tr></thead><tbody>');
+            for (var j = 0; j < list.length; j++) {
+                t.push('<tr>');
+                for (var k = 0; k < list[j].length; k++) {
+                    t.push('<td>' + list[j][k] + '</td>');
                 }
-                t.push('</tr></thead><tbody>');
-                for (var j = 0; j < list.length; j++) {
-                    t.push('<tr>');
-                    for (var k = 0; k < list[j].length; k++) {
-                        t.push('<td>' + list[j][k] + '</td>');
-                    }
-                    t.push('</tr>')
-                }
-                t.push('</tr></tbody></table>');
-                return t.join('');
-            };
-            var sendCommand = function (sequence, command) {
-                $content.append('<div class="command pending" id="command_' + sequence + '">' +
-                        '<span>#' + sequence + '></span>' +
-                        '<pre>' + command + '</pre></div>');
-                $content.append('<div class="result pending" id="result_' + sequence + '">pending...</div>');
+                t.push('</tr>')
+            }
+            t.push('</tr></tbody></table>');
+            return t.join('');
+        };
+
+        var app = (function ($) {
+            var CREATE = 1, EDIT = 2;
+            var scrollDown = function () {
+                $content = $('#content')
                 $content.scrollTop($content[0].scrollHeight);
-                return $.ajax({
-                    url: '/query',
-                    data: {
-                        command: command
-                    },
-                    type: 'post'
-                }).then(function (r, e, b) {
-                    if (r && r.msg)
-                        $('#result_' + sequence).html('<pre>' + r.msg + '</pre>').removeClass('pending');
-                    else if (r && r.table && r.table.values.length !== 0) {
-                        $('#result_' + sequence).html(generateTable(r.table.keys, r.table.values)).removeClass('pending');
-                        $('#result_' + sequence + ' table').DataTable({
-                            scrollX: true,
-                            paging: true
-                        });
-                    } else {
-                        $('#result_' + sequence).html('<pre>no result</pre>').removeClass('pending');
-                    }
-                    $('#command_' + sequence).removeClass('pending').addClass('success');
+            };
+            var success = function (data, sequence, mode) {
+                var $command = $('#command_' + sequence);
+                var $result = $('#result_' + sequence);
 
-                    if (command.substring(0, 2).trim() === '\\c')
-                        $('#dbname').text(command.substring(2).trim());
-                    $content.scrollTop($content[0].scrollHeight);
-                }, function (r) {
-                    if (r.status === 406) {
-                        $('#command_' + sequence).removeClass('pending').addClass('failure');
-                        $('#result_' + sequence).html('<pre class="error">' + r.responseJSON.msg + '</pre>').removeClass('pending');
-                        $content.scrollTop($content[0].scrollHeight);
-                    }
-                });
+                if (typeof data === 'string') { /* string */
+                    $result.html('<pre>' + data + '</pre>').removeClass('pending');
+                } else { /* table object */
+                    $result.html(generateTable(data.keys, data.values)).removeClass('pending');
+                    $('table', $result).DataTable({
+                        scrollX: true,
+                        paging: true
+                    });
+                }
+                if (mode === CREATE)
+                    scrollDown();
+            };
+            var error = function (data, sequence, mode) {
+                var $result = $('#result_' + sequence);
+                $result.html('<pre class="error">' + data + '</pre>').removeClass('pending');
+                if (mode === CREATE)
+                    scrollDown();
+            };
+            var getHeight = function (_sequence) {
+                return $('#result_' + _sequence).height();
+            }
+
+            return {
+                scrollDown: scrollDown,
+                success: success,
+                error: error,
+                getHeight: getHeight,
+                CREATE: CREATE,
+                EDIT: EDIT
+            };
+        })(jQuery);
+
+        ko.bindingHandlers.commander = {
+            init: function (elem, va) {
+                var v = va();
+                (function ($) {
+                    $(elem).find('textarea').on('keydown', function (e) {
+                        if (e.keyCode === 13 && e.ctrlKey) {
+                            var command = $(this).val().trim();
+                            if (command === '')
+                                return false;
+                            $(this).val('');
+
+                            v.triggerExecute(command);
+                            app.scrollDown();
+                        }
+                        return true;
+                    });
+
+                    v.triggerExecute('\\d');
+                })(jQuery);
+            }
+        };
+
+        ko.bindingHandlers.init = {
+            init: function (elem, va) {
+                var v = va();
+                (function ($) {
+                    v($.ajax);
+                })(jQuery);
+            }
+        };
+
+        (function () {
+
+            var Result = function (command, sequence, height) {
+                this.command = command;
+                this.sequence = sequence;
+                this.height = ko.observable(height || '');
+                /* 0: pending, 1: success, 2: failure */
+                this.status = ko.observable(0);
+                this.canRefresh = ko.observable(true);
             };
 
-            $(function ($) {
-                $content = $('#content');
-                var commandInput = document.querySelectorAll('textarea');
-                $(commandInput).focus();
+            var model = new function () {
+                var self = this;
+                var sequence = 0;
+                var request = null;
 
-                /* auto size command line */
-                autosize(commandInput);
+                var sendCommand = function (command, _sequence) {
+                    var result = null;
+                    var mode = app.CREATE;
 
-                /* key down event */
-                $(commandInput).on('keydown', function (e) {
-                    if (e.keyCode === 13 && !(e.shiftKey || e.ctrlKey)) {
-                        var command = $(this).val().trim();
-                        if (command === '')
-                            return false;
-                        $(this).val('');
-
-                        sendCommand(++sequence, command)
-                        return false;
+                    if (_sequence <= sequence) {
+                        // result = self.resultBlock()[_sequence - 1];
+                        var height = app.getHeight(_sequence);
+                        result = new Result(command, _sequence, height + 'px');
+                        self.resultBlock.splice(_sequence - 1, 1, result);
+                        mode = app.EDIT;
+                    } else {
+                        result = new Result(command, _sequence);
+                        self.resultBlock.push(result);
                     }
-                    return true;
-                });
 
-                sendCommand(++sequence, '\\d')
-            });
-        })(jQuery);
+                    request({
+                        url: '/query',
+                        data: {
+                            command: command
+                        },
+                        type: 'post'
+                    }).then(function (response) {
+                        /* success */
+                        result.status(1);
+
+                        /* success */
+                        if (response && response.msg)
+                            app.success(response.msg, _sequence, mode);
+                        else if (response && response.table && response.table.values.length !== 0) {
+                            app.success(response.table, _sequence, mode)
+                        } else
+                            app.success('no result', mode);
+
+                        if (command.substring(0, 2).trim() === '\\c') {
+                            self.dbname(command.substring(2).trim());
+                            result.canRefresh(false);
+                        }
+
+
+                    }, function (response) {
+                        /* failure */
+                        if (response.status === 406) {
+                            result.status(2);
+                            app.error(response.responseJSON.msg, _sequence, mode);
+                        }
+                    }).always(function () {
+                    })
+
+                };
+
+                self.resultBlock = ko.observableArray([]);
+                self.dbname = ko.observable('{{ dbname }}');
+
+                self.init = function (_request) {
+                    request = _request;
+                };
+
+                self.refresh = function (obj) {
+                    sendCommand(obj.command, obj.sequence);
+                };
+
+                self.edit = function (sequence, obj) {
+                    // self.triggerExecute(obj.command)
+                    console.log(request, sequence, obj)
+                };
+
+                self.triggerExecute = function (command) {
+                    var t = command.split(';');
+                    for (var i = 0; i < t.length; i++) {
+                        if (t[i].trim() === '') continue;
+
+                        sendCommand(t[i].trim(), sequence + 1);
+                        sequence++;
+                    }
+                }
+            }();
+
+            ko.applyBindings(model, document.getElementById('html'));
+        })();
     </script>
 {% endblock %}

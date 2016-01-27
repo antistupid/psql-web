@@ -21,6 +21,24 @@ class Commander
         $this->command = $command;
     }
 
+    public function generateTable($keys, $list) {
+        $t = [];
+        $t[] = '<table class="table table-striped"><thead><tr>';
+        for ($i = 0; $i < count($keys); $i++) {
+            $t[] = '<th>' . $keys[$i] . '</th>';
+        }
+        $t[] = '</tr></thead><tbody>';
+        for ($j = 0; $j < count($list); $j++) {
+            $t[] = '<tr>';
+            for ($k = 0; $k < count($list[$j]); $k++) {
+                $t[] = '<td>' . $list[$j][$k] . '</td>';
+            }
+            $t[] = '</tr>';
+        }
+        $t[] = '</tr></tbody></table>';
+        return \implode('', $t);
+    }
+
     public function execute()
     {
         $command = $this->_parseCommand(trim($_POST['command']));
@@ -92,7 +110,7 @@ class Commander
                     $databases = Query::get([$pd])->select()->all();
                 } catch (\Exception $e) {
                     return new CommandResult(false, [
-                        'msg' => 'FATAL:  databae "' . $command->arguments . "\" does not exist\nPrevious connection kept",
+                        'msg' => 'FATAL:  database "' . $command->arguments . "\" does not exist\nPrevious connection kept",
                     ], 406);
                 }
                 Session::set('dbname', $command->arguments);
