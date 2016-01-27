@@ -6,6 +6,7 @@ html, body {
 body {
     font-family: 'PT Sans', san-serif;
     font-weight: 300;
+    color: #666;
 }
 
 nav.navbar-inverse {
@@ -51,10 +52,15 @@ a.navbar-brand {
     font-family: 'ubuntu mono';
 }
 
+#commandline a, .command a {
+    color: #444;
+    text-decoration: underline;
+}
+
 #content {
     position: absolute;
     box-sizing: content-box;
-    overflow: scroll;
+    overflow-y: scroll;
     font-family: 'ubuntu mono', serif;
     bottom: 96px;
     left: 0px;
@@ -232,4 +238,12 @@ color: #696969;
 
 .pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover {
     background-color: #555;
+}
+
+
+/* scrollable */
+.scrollable-menu {
+    height: auto;
+    max-height: 300px;
+    overflow-x: hidden;
 }

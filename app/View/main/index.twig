@@ -53,8 +53,8 @@
                 $content.scrollTop($content[0].scrollHeight);
             };
 
-            var success = function (data, sequence, mode) {
-                var $result = $('#result_' + sequence);
+            var success = function (data, _sequence, mode) {
+                var $result = $('#result_' + _sequence);
 
                 if (typeof data === 'string') { /* string */
                     $result.html('<pre>' + data + '</pre>').removeClass('pending');
@@ -69,8 +69,8 @@
                     scrollDown();
             };
 
-            var error = function (data, sequence, mode) {
-                var $result = $('#result_' + sequence);
+            var error = function (data, _sequence, mode) {
+                var $result = $('#result_' + _sequence);
                 $result.html('<pre class="error">' + data + '</pre>').removeClass('pending');
                 if (mode === CREATE)
                     scrollDown();
@@ -105,19 +105,29 @@
                             var command = $commandInput.val().trim();
                             if (command === '')
                                 return false;
+
+                            /* empty commandInput */
                             $commandInput.val('');
+                            var evt = document.createEvent('Event');
+                            evt.initEvent('autosize:update', true, false);
+                            $commandInput[0].dispatchEvent(evt);
 
                             v.triggerExecute(command);
                             app.scrollDown();
                         };
 
-                        $(elem).find('textarea').on('keydown', function (e) {
+                        var $commandInput = $(elem).find('textarea');
+
+                        $commandInput.on('keydown', function (e) {
                             if (e.keyCode === 13 && e.ctrlKey) {
                                 sendInput();
                                 return false;
                             }
                             return true;
                         });
+
+                        /* auto size */
+                        autosize($commandInput[0]);
 
                         $(elem).find('#btn_send').click(sendInput);
 
@@ -178,15 +188,15 @@
                             app.success(response.msg, _sequence, mode);
                         else if (response && response.table && response.table.values.length !== 0) {
                             app.success(response.table, _sequence, mode)
-                        } else
-                            app.success('no result', mode);
+                        } else {
+                            app.success('no result', _sequence, mode);
+                        }
 
                         if (command.substring(0, 2).trim() === '\\c') {
                             self.dbname(command.substring(2).trim());
                             result.canRefresh(false);
+                            refreshCurrentTables();
                         }
-
-
                     }, function (response) {
                         /* failure */
                         if (response.status === 406) {
@@ -194,15 +204,60 @@
                             app.error(response.responseJSON.msg, _sequence, mode);
                         }
                     }).always(function () {
-                    })
+                    });
+                };
 
+                var setCurrentDatabases = function (response) {
+                    var v = response.table.values;
+                    var databases = [];
+                    for (var i = 0; i < v.length; i++) {
+                        databases.push(v[i][0]);
+                    }
+                    self.databases(databases);
+                };
+
+                var setCurrentTables = function (response) {
+                    var v = response.table.values;
+                    var tables = [];
+                    for (var i = 0; i < v.length; i++) {
+                        if (v[i][2] === 'table')
+                            tables.push(v[i][1]);
+                    }
+                    self.tables(tables);
+                };
+
+                var refreshCurrentDatabases = function () {
+                    /* get existing databases */
+                    request({
+                        url: '/query',
+                        data: {
+                            command: '\\l'
+                        },
+                        type: 'post'
+                    }).then(setCurrentDatabases);
+                };
+
+                var refreshCurrentTables = function () {
+                    /* get existing tables */
+                    request({
+                        url: '/query',
+                        data: {
+                            command: '\\d'
+                        },
+                        type: 'post'
+                    }).then(setCurrentTables);
                 };
 
                 self.resultBlock = ko.observableArray([]);
                 self.dbname = ko.observable('{{ dbname }}');
 
+                self.databases = ko.observableArray([]);
+                self.tables = ko.observableArray([]);
+
                 self.init = function (_request) {
                     request = _request;
+                    refreshCurrentDatabases();
+                    refreshCurrentTables();
                 };
 
                 self.refresh = function (obj) {
@@ -210,6 +265,16 @@
                 };
 
                 self.edit = function (sequence, obj) {
+                };
+
+                self.connectDatabase = function (database) {
+                    sendCommand('\\c ' + database, sequence + 1);
+                    sequence++;
+                };
+
+                self.selectTable = function (table) {
+                    sendCommand('SELECT * FROM ' + table + ' LIMIT 100 OFFSET 0;', sequence + 1);
+                    sequence++;
                 };
 
                 self.triggerExecute = function (command) {
@@ -236,7 +301,7 @@
                         sendCommand(t[i].trim(), sequence + 1);
                         sequence++;
                     }
-                }
+                };
             }();
 
             ko.applyBindings(Model, document.getElementById('html'));
